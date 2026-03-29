@@ -6,15 +6,25 @@ export const dynamic = "force-dynamic";
 /**
  * POST /api/mitglieder/update
  *
- * Updates a member's contact details (email, birthdate) and
- * login credentials in EasyVerein.
+ * Updates a member's contact details (email, birthdate, SEPA),
+ * sets the login password, and activates the EasyVerein account.
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { memberId, contactId, email, passwort, geburtsdatum } = body;
+    const {
+      memberId,
+      contactId,
+      mitgliedsnummer,
+      email,
+      passwort,
+      geburtsdatum,
+      iban,
+      bic,
+      kontoinhaber,
+    } = body;
 
-    if (!memberId || !contactId || !email || !geburtsdatum) {
+    if (!memberId || !contactId || !email || !geburtsdatum || !iban || !kontoinhaber) {
       return NextResponse.json(
         { error: "Bitte füllen Sie alle Pflichtfelder aus." },
         { status: 400 }
@@ -31,28 +41,36 @@ export async function POST(request: Request) {
     // Normalize date to YYYY-MM-DD (API expects ISO format)
     let isoDate = geburtsdatum;
     if (geburtsdatum.includes(".")) {
-      // Convert DD.MM.YYYY → YYYY-MM-DD
       const parts = geburtsdatum.split(".");
       if (parts.length === 3) {
         isoDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
       }
     }
 
-    // Update contact details (email, birthdate)
+    // SEPA mandate date: 30 days ago in YYYY-MM-DD
+    const mandateDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const sepaDate = mandateDate.toISOString().split("T")[0];
+
+    // Mandate reference: "Bildung Mitgliedsnr. {number}"
+    const sepaMandate = `Bildung Mitgliedsnr. ${mitgliedsnummer || ""}`.trim();
+
+    // Update contact details (email, birthdate, SEPA)
     await updateContactDetails(contactId, {
       privateEmail: email,
       dateOfBirth: isoDate,
+      iban: iban.replace(/\s/g, ""),
+      bic: bic || "",
+      bankAccountOwner: kontoinhaber,
+      sepaMandate,
+      sepaDate,
+      methodOfPayment: 1, // 1 = Lastschrift
     });
 
-    // Update member login email — some tokens may lack write access here,
-    // so we treat this as non-critical if contact-details succeeded.
-    try {
-      await updateMemberLogin(memberId, {
-        emailOrUserName: email,
-      });
-    } catch (loginErr) {
-      console.warn("Member login update failed (non-critical):", loginErr);
-    }
+    // Update member login: set email, password, and activate account
+    await updateMemberLogin(memberId, {
+      emailOrUserName: email,
+      password: passwort,
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

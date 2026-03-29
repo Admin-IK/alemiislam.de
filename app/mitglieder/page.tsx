@@ -28,7 +28,12 @@ type ProfileData = VerifyForm & {
 
 type ProfileUpdate = {
   email: string;
+  passwort: string;
+  passwortConfirm: string;
   geburtsdatum: string;
+  iban: string;
+  bic: string;
+  kontoinhaber: string;
 };
 
 type Step = "verify" | "profile" | "done";
@@ -45,7 +50,12 @@ const EMPTY_VERIFY: VerifyForm = {
 
 const EMPTY_UPDATE: ProfileUpdate = {
   email: "",
+  passwort: "",
+  passwortConfirm: "",
   geburtsdatum: "",
+  iban: "",
+  bic: "",
+  kontoinhaber: "",
 };
 
 /* ------------------------------------------------------------------ */
@@ -220,6 +230,15 @@ export default function MitgliederPage() {
     e.preventDefault();
     setError("");
 
+    if (update.passwort !== update.passwortConfirm) {
+      setError("Die Passwörter stimmen nicht überein.");
+      return;
+    }
+    if (update.passwort.length < 8) {
+      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -229,8 +248,13 @@ export default function MitgliederPage() {
         body: JSON.stringify({
           memberId: profile?.memberId,
           contactId: profile?.contactId,
+          mitgliedsnummer: profile?.mitgliedsnummer,
           email: update.email,
+          passwort: update.passwort,
           geburtsdatum: update.geburtsdatum,
+          iban: update.iban,
+          bic: update.bic,
+          kontoinhaber: update.kontoinhaber,
         }),
       });
       const data = await res.json();
@@ -493,6 +517,38 @@ export default function MitgliederPage() {
                   />
                 </div>
 
+                <div style={row}>
+                  <div style={fieldGroup}>
+                    <label style={label}>Passwort (für Login) *</label>
+                    <input
+                      style={input}
+                      required
+                      type="password"
+                      value={update.passwort}
+                      onChange={(e) =>
+                        setUpdate({ ...update, passwort: e.target.value })
+                      }
+                      placeholder="Min. 8 Zeichen"
+                    />
+                  </div>
+                  <div style={fieldGroup}>
+                    <label style={label}>Passwort bestätigen *</label>
+                    <input
+                      style={input}
+                      required
+                      type="password"
+                      value={update.passwortConfirm}
+                      onChange={(e) =>
+                        setUpdate({
+                          ...update,
+                          passwortConfirm: e.target.value,
+                        })
+                      }
+                      placeholder="Nochmal eingeben"
+                    />
+                  </div>
+                </div>
+
                 <div style={fieldGroup}>
                   <label style={label}>Geburtsdatum *</label>
                   <input
@@ -504,6 +560,86 @@ export default function MitgliederPage() {
                       setUpdate({ ...update, geburtsdatum: e.target.value })
                     }
                   />
+                </div>
+
+                {/* SEPA / Lastschrift */}
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "1.05rem",
+                    margin: "1.5rem 0 0.25rem",
+                    color: "var(--color-primary-dark)",
+                  }}
+                >
+                  Bankverbindung (Lastschriftverfahren)
+                </h3>
+                <p
+                  style={{
+                    margin: "0 0 1rem",
+                    fontSize: "0.85rem",
+                    color: "var(--color-muted)",
+                  }}
+                >
+                  Für den Mitgliedsbeitrag per SEPA-Lastschrift. Mandatsreferenz
+                  und Mandatsdatum werden automatisch gesetzt.
+                </p>
+
+                <div style={fieldGroup}>
+                  <label style={label}>IBAN *</label>
+                  <input
+                    style={input}
+                    required
+                    value={update.iban}
+                    onChange={(e) =>
+                      setUpdate({ ...update, iban: e.target.value.toUpperCase().replace(/\s/g, "") })
+                    }
+                    placeholder="z. B. DE89 3704 0044 0532 0130 00"
+                  />
+                </div>
+
+                <div style={row}>
+                  <div style={fieldGroup}>
+                    <label style={label}>BIC</label>
+                    <input
+                      style={input}
+                      value={update.bic}
+                      onChange={(e) =>
+                        setUpdate({ ...update, bic: e.target.value.toUpperCase() })
+                      }
+                      placeholder="z. B. COBADEFFXXX"
+                    />
+                  </div>
+                  <div style={fieldGroup}>
+                    <label style={label}>Kontoinhaber *</label>
+                    <input
+                      style={input}
+                      required
+                      value={update.kontoinhaber}
+                      onChange={(e) =>
+                        setUpdate({ ...update, kontoinhaber: e.target.value })
+                      }
+                      placeholder="Vor- und Nachname"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    ...infoBox,
+                    marginBottom: "1rem",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  <strong>Mandatsreferenz:</strong>{" "}
+                  Bildung Mitgliedsnr. {profile?.mitgliedsnummer}
+                  <br />
+                  <strong>Mandatsdatum:</strong>{" "}
+                  {new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                    .toLocaleDateString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
                 </div>
 
                 <button
@@ -537,7 +673,7 @@ export default function MitgliederPage() {
                 </p>
               </div>
 
-              {/* Schritt 1: Passwort anfordern */}
+              {/* Anleitung: Einloggen */}
               <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
                 <h3
                   style={{
@@ -547,55 +683,7 @@ export default function MitgliederPage() {
                     color: "var(--color-primary-dark)",
                   }}
                 >
-                  Schritt 1: Passwort erstellen
-                </h3>
-                <ol
-                  style={{
-                    margin: 0,
-                    paddingLeft: "1.25rem",
-                    color: "var(--color-text)",
-                    lineHeight: 1.8,
-                    fontSize: "0.95rem",
-                  }}
-                >
-                  <li>
-                    Öffnen Sie die Login-Seite:{" "}
-                    <a
-                      href="https://easyverein.com/public/AlemiIslam/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontWeight: 600 }}
-                    >
-                      easyverein.com/public/AlemiIslam
-                    </a>
-                  </li>
-                  <li>
-                    Klicken Sie auf{" "}
-                    <strong>&bdquo;Passwort vergessen?&ldquo;</strong>
-                  </li>
-                  <li>
-                    Geben Sie die <strong>E-Mail-Adresse</strong> ein, die Sie
-                    soeben hinterlegt haben.
-                  </li>
-                  <li>
-                    Sie erhalten eine E-Mail mit einem Link zum{" "}
-                    <strong>Passwort erstellen</strong>. Prüfen Sie auch Ihren
-                    Spam-Ordner.
-                  </li>
-                </ol>
-              </div>
-
-              {/* Schritt 2: Einloggen */}
-              <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.15rem",
-                    margin: "0 0 1rem",
-                    color: "var(--color-primary-dark)",
-                  }}
-                >
-                  Schritt 2: Bei EasyVerein einloggen
+                  Anleitung: Bei EasyVerein einloggen
                 </h3>
                 <ol
                   style={{
@@ -652,8 +740,8 @@ export default function MitgliederPage() {
                   }}
                 >
                   <li>
-                    Geben Sie Ihre <strong>E-Mail-Adresse</strong> und das soeben
-                    erstellte <strong>Passwort</strong> ein.
+                    Geben Sie Ihre <strong>E-Mail-Adresse</strong> und das{" "}
+                    <strong>Passwort</strong> ein, das Sie soeben gewählt haben.
                   </li>
                   <li>
                     Klicken Sie auf <strong>&bdquo;Anmelden&ldquo;</strong>.

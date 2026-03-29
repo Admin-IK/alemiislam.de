@@ -134,6 +134,12 @@ export async function updateContactDetails(
   data: {
     privateEmail?: string;
     dateOfBirth?: string;
+    iban?: string;
+    bic?: string;
+    bankAccountOwner?: string;
+    sepaMandate?: string;
+    sepaDate?: string;
+    methodOfPayment?: number;
   }
 ) {
   const res = await apiFetch(`/contact-details/${contactId}`, {
@@ -154,15 +160,24 @@ export async function updateContactDetails(
 /*  Update member login (emailOrUserName)                             */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Update member login credentials and activate the account.
+ * Sets emailOrUserName, password, and requirePasswordChange=false
+ * so the member can log in immediately.
+ */
 export async function updateMemberLogin(
   memberId: number,
   data: {
     emailOrUserName?: string;
+    password?: string;
   }
 ) {
   const res = await apiFetch(`/member/${memberId}`, {
     method: "PATCH",
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      ...data,
+      requirePasswordChange: false,
+    }),
   });
 
   if (!res.ok) {
