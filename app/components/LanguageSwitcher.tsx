@@ -16,24 +16,24 @@ export function LanguageSwitcher() {
         className={`lang-switch-btn${locale === "de" ? " is-active" : ""}`}
         onClick={() => setLocale("de")}
         aria-pressed={locale === "de"}
+        aria-label={t("lang.de")}
         title={t("lang.de")}
       >
         <span className="lang-switch-flag" aria-hidden>
           🇩🇪
         </span>
-        <span className="lang-switch-code">DE</span>
       </button>
       <button
         type="button"
         className={`lang-switch-btn${locale === "tr" ? " is-active" : ""}`}
         onClick={() => setLocale("tr")}
         aria-pressed={locale === "tr"}
+        aria-label={t("lang.tr")}
         title={t("lang.tr")}
       >
         <span className="lang-switch-flag" aria-hidden>
           🇹🇷
         </span>
-        <span className="lang-switch-code">TR</span>
       </button>
     </div>
   );

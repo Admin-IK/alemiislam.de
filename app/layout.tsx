@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import { LocaleProvider } from "./components/LocaleProvider";
 import "./globals.css";
 
-const dmSans = DM_Sans({
+const openSans = Open_Sans({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-dm-sans",
-  display: "swap",
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700"],
-  variable: "--font-cormorant",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-open-sans",
   display: "swap",
 });
 
@@ -48,7 +42,7 @@ export default function RootLayout({
     <html
       lang="de"
       suppressHydrationWarning
-      className={`${dmSans.variable} ${cormorant.variable}`}
+      className={openSans.variable}
     >
       <body>
         <LocaleProvider>{children}</LocaleProvider>

@@ -8,8 +8,8 @@
   --color-text: #1c1917;
   --color-muted: #57534e;
   --color-border: #e7e5e4;
-  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
-  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-open-sans), "Open Sans", system-ui, sans-serif;
+  --font-display: var(--font-open-sans), "Open Sans", system-ui, sans-serif;
   --shadow: 0 4px 24px rgba(28, 25, 23, 0.08);
   --radius: 12px;
 }
@@ -208,61 +208,58 @@ img {
   background: var(--color-bg);
 }
 
-/* Sprache DE / TR */
+/* Sprache: eine kompakte Flaggen-Zelle */
 .lang-switch {
   display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  margin-left: 0.35rem;
-  padding-left: 0.65rem;
-  border-left: 1px solid var(--color-border);
+  align-items: stretch;
+  margin-left: 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface);
 }
 
 .lang-switch-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.35rem 0.5rem;
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
-  font-weight: 600;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.45rem;
+  margin: 0;
+  font: inherit;
   line-height: 1;
   color: var(--color-muted);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   cursor: pointer;
-  text-decoration: none;
   transition:
     color 0.15s,
-    border-color 0.15s,
     background 0.15s;
+}
+
+.lang-switch-btn + .lang-switch-btn {
+  border-left: 1px solid var(--color-border);
 }
 
 .lang-switch-btn:hover {
   color: var(--color-primary);
-  border-color: var(--color-primary);
+  background: var(--color-bg);
 }
 
 .lang-switch-btn.is-active {
-  color: #fff;
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  color: inherit;
+  background: rgba(19, 78, 74, 0.14);
 }
 
 .lang-switch-btn.is-active:hover {
-  color: #fff;
-  background: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  background: rgba(19, 78, 74, 0.22);
 }
 
 .lang-switch-flag {
-  font-size: 1rem;
+  font-size: 1.2rem;
   line-height: 1;
-}
-
-.lang-switch-code {
-  letter-spacing: 0.04em;
 }
 
 /* Hero */
