@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { SubpageShell } from "../components/SubpageShell";
+import { useLocale } from "../components/LocaleProvider";
 
 type MemberStatus = {
   id: number;
@@ -28,12 +29,6 @@ type DashboardData = {
 
 type Filter = "all" | "completed" | "partial" | "pending";
 
-const STATUS_LABELS: Record<MemberStatus["status"], string> = {
-  completed: "Abgeschlossen",
-  partial: "Teilweise",
-  pending: "Ausstehend",
-};
-
 const STATUS_COLORS: Record<MemberStatus["status"], string> = {
   completed: "#16a34a",
   partial: "#d97706",
@@ -41,11 +36,18 @@ const STATUS_COLORS: Record<MemberStatus["status"], string> = {
 };
 
 export default function AdminPage() {
+  const { t } = useLocale();
   const [password, setPassword] = useState("");
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+
+  const STATUS_LABELS: Record<MemberStatus["status"], string> = {
+    completed: t("admin.completed"),
+    partial: t("admin.partial"),
+    pending: t("admin.pending"),
+  };
 
   const fetchData = useCallback(async (pw: string) => {
     setLoading(true);
@@ -61,7 +63,7 @@ export default function AdminPage() {
       }
       setData(json);
     } catch {
-      setError("Verbindungsfehler.");
+      setError(t("admin.connectionError"));
     } finally {
       setLoading(false);
     }
@@ -126,10 +128,10 @@ export default function AdminPage() {
                   color: "var(--color-primary-dark)",
                 }}
               >
-                Admin Dashboard
+                {t("admin.title")}
               </h1>
               <p style={{ color: "var(--color-muted)", margin: "0 0 1.5rem" }}>
-                Passwort eingeben, um die Mitglieder-Übersicht zu sehen.
+                {t("admin.loginIntro")}
               </p>
 
               {error && (
@@ -160,7 +162,7 @@ export default function AdminPage() {
                     marginBottom: "0.3rem",
                   }}
                 >
-                  Admin-Passwort
+                  {t("admin.passwordLabel")}
                 </label>
                 <input
                   type="password"
@@ -199,7 +201,7 @@ export default function AdminPage() {
                     opacity: loading ? 0.7 : 1,
                   }}
                 >
-                  {loading ? "Wird geladen …" : "Anmelden"}
+                  {loading ? t("admin.loading") : t("admin.loginBtn")}
                 </button>
               </form>
             </div>
@@ -225,7 +227,7 @@ export default function AdminPage() {
                     color: "var(--color-primary-dark)",
                   }}
                 >
-                  Mitglieder-Übersicht
+                  {t("admin.overviewTitle")}
                 </h1>
                 <button
                   onClick={() => fetchData(password)}
@@ -242,7 +244,7 @@ export default function AdminPage() {
                     color: "var(--color-text)",
                   }}
                 >
-                  {loading ? "Laden …" : "Aktualisieren"}
+                  {loading ? t("admin.refreshing") : t("admin.refresh")}
                 </button>
               </div>
 
@@ -256,28 +258,28 @@ export default function AdminPage() {
                 }}
               >
                 <StatCard
-                  label="Gesamt"
+                  label={t("admin.total")}
                   value={data.total}
                   color="var(--color-primary-dark)"
                   active={filter === "all"}
                   onClick={() => setFilter("all")}
                 />
                 <StatCard
-                  label="Abgeschlossen"
+                  label={t("admin.completed")}
                   value={data.completedCount}
                   color="#16a34a"
                   active={filter === "completed"}
                   onClick={() => setFilter("completed")}
                 />
                 <StatCard
-                  label="Teilweise"
+                  label={t("admin.partial")}
                   value={data.partialCount}
                   color="#d97706"
                   active={filter === "partial"}
                   onClick={() => setFilter("partial")}
                 />
                 <StatCard
-                  label="Ausstehend"
+                  label={t("admin.pending")}
                   value={data.pendingCount}
                   color="#dc2626"
                   active={filter === "pending"}
@@ -299,7 +301,7 @@ export default function AdminPage() {
                     color: "var(--color-primary-dark)",
                   }}
                 >
-                  Letzte 7 Tage
+                  {t("admin.last7")}
                 </h2>
                 <p
                   style={{
@@ -310,8 +312,8 @@ export default function AdminPage() {
                 >
                   {recentActivity.length}{" "}
                   {recentActivity.length === 1
-                    ? "Aktualisierung"
-                    : "Aktualisierungen"}
+                    ? t("admin.update1")
+                    : t("admin.updates")}
                 </p>
                 {recentActivity.length === 0 ? (
                   <p
@@ -321,7 +323,7 @@ export default function AdminPage() {
                       color: "var(--color-muted)",
                     }}
                   >
-                    Keine Aktivität in den letzten 7 Tagen.
+                    {t("admin.noActivity")}
                   </p>
                 ) : (
                   <table
@@ -407,15 +409,15 @@ export default function AdminPage() {
                         borderBottom: "2px solid var(--color-border)",
                       }}
                     >
-                      <Th>Status</Th>
-                      <Th>Nr.</Th>
-                      <Th>Name</Th>
-                      <Th>E-Mail</Th>
-                      <Th>Telefon</Th>
-                      <Th align="center">E-Mail</Th>
+                      <Th>{t("admin.status")}</Th>
+                      <Th>{t("admin.nr")}</Th>
+                      <Th>{t("admin.name")}</Th>
+                      <Th>{t("mitglieder.email")}</Th>
+                      <Th>{t("admin.phone")}</Th>
+                      <Th align="center">{t("mitglieder.email")}</Th>
                       <Th align="center">IBAN</Th>
-                      <Th align="center">Geb.</Th>
-                      <Th>Aktiviert am</Th>
+                      <Th align="center">{t("mitglieder.birthdate")}</Th>
+                      <Th>{t("admin.activatedAt")}</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -458,10 +460,10 @@ export default function AdminPage() {
                         </Td>
                         <Td>
                           {(() => {
-                            if (!m.internalNote) return <span style={{ color: "var(--color-muted)" }}>Nie</span>;
+                            if (!m.internalNote) return <span style={{ color: "var(--color-muted)" }}>{t("admin.never")}</span>;
                             const match = m.internalNote.match(/(\d{2}\.\d{2}\.\d{4})/);
                             const timeMatch = m.internalNote.match(/(\d{2}:\d{2})/);
-                            if (!match) return <span style={{ color: "var(--color-muted)" }}>Nie</span>;
+                            if (!match) return <span style={{ color: "var(--color-muted)" }}>{t("admin.never")}</span>;
                             return (
                               <span style={{ fontSize: "0.82rem", color: "#16a34a", fontWeight: 600 }}>
                                 {match[1]}
@@ -482,7 +484,7 @@ export default function AdminPage() {
                             padding: "2rem",
                           }}
                         >
-                          Keine Mitglieder in dieser Kategorie.
+                          {t("admin.noMembers")}
                         </Td>
                       </tr>
                     )}
@@ -497,7 +499,7 @@ export default function AdminPage() {
                   color: "var(--color-muted)",
                 }}
               >
-                Stand:{" "}
+                {t("admin.asOf")}{" "}
                 {new Date().toLocaleDateString("de-DE", {
                   day: "2-digit",
                   month: "2-digit",

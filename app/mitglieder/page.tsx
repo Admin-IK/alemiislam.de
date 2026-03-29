@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { SubpageShell } from "../components/SubpageShell";
+import { useLocale } from "../components/LocaleProvider";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                             */
@@ -70,7 +71,7 @@ const pageTitle: React.CSSProperties = {
   color: "var(--color-primary-dark)",
 };
 
-const label: React.CSSProperties = {
+const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: "0.82rem",
   fontWeight: 600,
@@ -80,7 +81,7 @@ const label: React.CSSProperties = {
   marginBottom: "0.3rem",
 };
 
-const input: React.CSSProperties = {
+const inputStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
   padding: "0.6rem 0.85rem",
@@ -93,9 +94,7 @@ const input: React.CSSProperties = {
   outline: "none",
 };
 
-const fieldGroup: React.CSSProperties = {
-  marginBottom: "1rem",
-};
+const fieldGroup: React.CSSProperties = { marginBottom: "1rem" };
 
 const row: React.CSSProperties = {
   display: "grid",
@@ -146,7 +145,7 @@ const profileDl: React.CSSProperties = {
   margin: "0 0 1.5rem",
 };
 
-const dtStyle: React.CSSProperties = {
+const dtSt: React.CSSProperties = {
   fontSize: "0.8rem",
   fontWeight: 600,
   textTransform: "uppercase",
@@ -155,7 +154,7 @@ const dtStyle: React.CSSProperties = {
   paddingTop: "0.15rem",
 };
 
-const ddStyle: React.CSSProperties = {
+const ddSt: React.CSSProperties = {
   margin: 0,
   fontWeight: 600,
   color: "var(--color-text)",
@@ -175,45 +174,53 @@ const stepDot = (active: boolean): React.CSSProperties => ({
   transition: "background 0.3s",
 });
 
+const h3Style: React.CSSProperties = {
+  fontFamily: "var(--font-display)",
+  fontSize: "1.15rem",
+  margin: "0 0 1rem",
+  color: "var(--color-primary-dark)",
+};
+
 /* ------------------------------------------------------------------ */
 /*  IBAN validation (ISO 13616 mod-97 checksum)                       */
 /* ------------------------------------------------------------------ */
 
-function validateIBAN(raw: string): string | null {
+function validateIBAN(
+  raw: string,
+  t: (k: string, v?: Record<string, string>) => string
+): string | null {
   const iban = raw.replace(/\s/g, "").toUpperCase();
 
-  // Basic format: 2 letters, 2 digits, 12-30 alphanumeric
   if (!/^[A-Z]{2}\d{2}[A-Z0-9]{12,30}$/.test(iban)) {
-    return "Ungültiges IBAN-Format. Bitte prüfen Sie Ihre Eingabe.";
+    return t("mitglieder.ibanInvalidFormat");
   }
 
-  // Country-specific length check (common ones)
   const lengths: Record<string, number> = {
     DE: 22, AT: 20, CH: 21, FR: 27, NL: 18, BE: 16, IT: 27,
     ES: 24, PT: 25, PL: 28, TR: 26, GB: 22, LU: 20, DK: 18,
   };
   const country = iban.slice(0, 2);
   if (lengths[country] && iban.length !== lengths[country]) {
-    return `Eine ${country}-IBAN muss ${lengths[country]} Zeichen haben (eingegeben: ${iban.length}).`;
+    return t("mitglieder.ibanWrongLength", {
+      country,
+      expected: String(lengths[country]),
+      actual: String(iban.length),
+    });
   }
 
-  // Mod-97 checksum: move first 4 chars to end, convert letters to numbers
   const rearranged = iban.slice(4) + iban.slice(0, 4);
   const numeric = rearranged.replace(/[A-Z]/g, (ch) =>
     String(ch.charCodeAt(0) - 55)
   );
-
-  // BigInt-free mod 97 (process in chunks to avoid overflow)
   let remainder = 0;
   for (let i = 0; i < numeric.length; i++) {
     remainder = (remainder * 10 + Number(numeric[i])) % 97;
   }
-
   if (remainder !== 1) {
-    return "Die IBAN-Prüfziffer ist ungültig. Bitte überprüfen Sie die Nummer.";
+    return t("mitglieder.ibanInvalidChecksum");
   }
 
-  return null; // valid
+  return null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -221,6 +228,7 @@ function validateIBAN(raw: string): string | null {
 /* ------------------------------------------------------------------ */
 
 export default function MitgliederPage() {
+  const { t } = useLocale();
   const [step, setStep] = useState<Step>("verify");
   const [verify, setVerify] = useState<VerifyForm>(EMPTY_VERIFY);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -228,13 +236,10 @@ export default function MitgliederPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  /* ---------- Step 1: Verifizierung ---------- */
-
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch("/api/mitglieder/verify", {
         method: "POST",
@@ -242,15 +247,10 @@ export default function MitgliederPage() {
         body: JSON.stringify(verify),
       });
       const data = await res.json();
-
       if (!res.ok) {
-        setError(
-          data.error ||
-            "Mitglied konnte nicht gefunden werden. Bitte prüfen Sie Ihre Angaben."
-        );
+        setError(data.error || t("mitglieder.notFound"));
         return;
       }
-
       setProfile(data.profile);
       setUpdate((prev) => ({
         ...prev,
@@ -259,35 +259,31 @@ export default function MitgliederPage() {
       }));
       setStep("profile");
     } catch {
-      setError("Verbindungsfehler. Bitte versuchen Sie es später erneut.");
+      setError(t("mitglieder.connectionError"));
     } finally {
       setLoading(false);
     }
   }
-
-  /* ---------- Step 2: Profil ergänzen ---------- */
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
     if (update.passwort !== update.passwortConfirm) {
-      setError("Die Passwörter stimmen nicht überein.");
+      setError(t("mitglieder.passwordMismatch"));
       return;
     }
     if (update.passwort.length < 8) {
-      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+      setError(t("mitglieder.passwordTooShort"));
       return;
     }
-
-    const ibanError = validateIBAN(update.iban);
+    const ibanError = validateIBAN(update.iban, t);
     if (ibanError) {
       setError(ibanError);
       return;
     }
 
     setLoading(true);
-
     try {
       const res = await fetch("/api/mitglieder/update", {
         method: "POST",
@@ -305,27 +301,22 @@ export default function MitgliederPage() {
         }),
       });
       const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error || "Fehler beim Speichern. Bitte erneut versuchen.");
+        setError(data.error || t("mitglieder.saveError"));
         return;
       }
-
       setStep("done");
     } catch {
-      setError("Verbindungsfehler. Bitte versuchen Sie es später erneut.");
+      setError(t("mitglieder.connectionError"));
     } finally {
       setLoading(false);
     }
   }
 
-  /* ---------- Render ---------- */
-
   return (
     <SubpageShell>
       <main className="section section-alt">
         <div className="container" style={{ maxWidth: 640 }}>
-          {/* Step indicator */}
           <div style={stepIndicator}>
             <span style={stepDot(step === "verify")} />
             <span style={stepDot(step === "profile")} />
@@ -336,130 +327,69 @@ export default function MitgliederPage() {
           {step === "verify" && (
             <>
               <div className="section-head">
-                <h1 style={pageTitle}>Mitgliederdatenerfassung</h1>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "var(--color-muted)",
-                    maxWidth: "56ch",
-                  }}
-                >
-                  Bitte geben Sie Ihre Daten ein, damit wir Ihr Profil in
-                  EasyVerein finden und anzeigen können. Alle Angaben werden
-                  vertraulich behandelt.
+                <h1 style={pageTitle}>{t("mitglieder.title")}</h1>
+                <p style={{ margin: 0, color: "var(--color-muted)", maxWidth: "56ch" }}>
+                  {t("mitglieder.intro")}
                 </p>
               </div>
 
               {error && <div style={errorBox}>{error}</div>}
 
-              <form
-                onSubmit={handleVerify}
-                className="card"
-                style={{ padding: "1.5rem" }}
-              >
+              <form onSubmit={handleVerify} className="card" style={{ padding: "1.5rem" }}>
                 <div style={row}>
                   <div style={fieldGroup}>
-                    <label style={label}>Vorname *</label>
-                    <input
-                      style={input}
-                      required
-                      value={verify.vorname}
-                      onChange={(e) =>
-                        setVerify({ ...verify, vorname: e.target.value })
-                      }
-                      placeholder="z. B. Mehmet"
-                    />
+                    <label style={labelStyle}>{t("mitglieder.vorname")} *</label>
+                    <input style={inputStyle} required value={verify.vorname}
+                      onChange={(e) => setVerify({ ...verify, vorname: e.target.value })}
+                      placeholder={t("mitglieder.placeholderVorname")} />
                   </div>
                   <div style={fieldGroup}>
-                    <label style={label}>Nachname *</label>
-                    <input
-                      style={input}
-                      required
-                      value={verify.nachname}
-                      onChange={(e) =>
-                        setVerify({ ...verify, nachname: e.target.value })
-                      }
-                      placeholder="z. B. Yılmaz"
-                    />
+                    <label style={labelStyle}>{t("mitglieder.nachname")} *</label>
+                    <input style={inputStyle} required value={verify.nachname}
+                      onChange={(e) => setVerify({ ...verify, nachname: e.target.value })}
+                      placeholder={t("mitglieder.placeholderNachname")} />
                   </div>
                 </div>
 
                 <div style={fieldGroup}>
-                  <label style={label}>Telefonnummer *</label>
-                  <input
-                    style={input}
-                    required
-                    type="tel"
-                    value={verify.telefon}
-                    onChange={(e) =>
-                      setVerify({ ...verify, telefon: e.target.value })
-                    }
-                    placeholder="z. B. 0176 12345678"
-                  />
+                  <label style={labelStyle}>{t("mitglieder.telefon")} *</label>
+                  <input style={inputStyle} required type="tel" value={verify.telefon}
+                    onChange={(e) => setVerify({ ...verify, telefon: e.target.value })}
+                    placeholder={t("mitglieder.placeholderTelefon")} />
                 </div>
 
                 <div style={row}>
                   <div style={fieldGroup}>
-                    <label style={label}>Straße + Hausnr. *</label>
-                    <input
-                      style={input}
-                      required
-                      value={verify.strasse}
-                      onChange={(e) =>
-                        setVerify({ ...verify, strasse: e.target.value })
-                      }
-                      placeholder="z. B. Musterstr. 12"
-                    />
+                    <label style={labelStyle}>{t("mitglieder.strasse")} *</label>
+                    <input style={inputStyle} required value={verify.strasse}
+                      onChange={(e) => setVerify({ ...verify, strasse: e.target.value })}
+                      placeholder={t("mitglieder.placeholderStrasse")} />
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "5rem 1fr", gap: "0.5rem" }}>
                     <div style={fieldGroup}>
-                      <label style={label}>PLZ *</label>
-                      <input
-                        style={input}
-                        required
-                        value={verify.plz}
-                        onChange={(e) =>
-                          setVerify({ ...verify, plz: e.target.value })
-                        }
-                        placeholder="67059"
-                      />
+                      <label style={labelStyle}>{t("mitglieder.plz")} *</label>
+                      <input style={inputStyle} required value={verify.plz}
+                        onChange={(e) => setVerify({ ...verify, plz: e.target.value })}
+                        placeholder="67059" />
                     </div>
                     <div style={fieldGroup}>
-                      <label style={label}>Ort *</label>
-                      <input
-                        style={input}
-                        required
-                        value={verify.ort}
-                        onChange={(e) =>
-                          setVerify({ ...verify, ort: e.target.value })
-                        }
-                        placeholder="Ludwigshafen"
-                      />
+                      <label style={labelStyle}>{t("mitglieder.ort")} *</label>
+                      <input style={inputStyle} required value={verify.ort}
+                        onChange={(e) => setVerify({ ...verify, ort: e.target.value })}
+                        placeholder={t("mitglieder.placeholderOrt")} />
                     </div>
                   </div>
                 </div>
 
                 <div style={fieldGroup}>
-                  <label style={label}>Name eines Kindes (optional)</label>
-                  <input
-                    style={input}
-                    value={verify.kindname}
-                    onChange={(e) =>
-                      setVerify({ ...verify, kindname: e.target.value })
-                    }
-                    placeholder="Falls vorhanden, z. B. Ayşe"
-                  />
+                  <label style={labelStyle}>{t("mitglieder.kindname")}</label>
+                  <input style={inputStyle} value={verify.kindname}
+                    onChange={(e) => setVerify({ ...verify, kindname: e.target.value })}
+                    placeholder={t("mitglieder.placeholderKind")} />
                 </div>
 
-                <button
-                  type="submit"
-                  style={{
-                    ...btnPrimary,
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                  disabled={loading}
-                >
-                  {loading ? "Wird gesucht …" : "Profil suchen"}
+                <button type="submit" style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }} disabled={loading}>
+                  {loading ? t("mitglieder.searching") : t("mitglieder.searchBtn")}
                 </button>
               </form>
             </>
@@ -469,235 +399,116 @@ export default function MitgliederPage() {
           {step === "profile" && profile && (
             <>
               <div className="section-head">
-                <h1 style={pageTitle}>Profil prüfen &amp; ergänzen</h1>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "var(--color-muted)",
-                    maxWidth: "56ch",
-                  }}
-                >
-                  Wir haben Ihr Profil gefunden. Bitte prüfen Sie die Daten und
-                  ergänzen Sie die fehlenden Angaben.
+                <h1 style={pageTitle}>{t("mitglieder.profileTitle")}</h1>
+                <p style={{ margin: 0, color: "var(--color-muted)", maxWidth: "56ch" }}>
+                  {t("mitglieder.profileIntro")}
                 </p>
               </div>
 
               {error && <div style={errorBox}>{error}</div>}
 
-              {/* Existing data display */}
               <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.15rem",
-                    margin: "0 0 1rem",
-                    color: "var(--color-primary-dark)",
-                  }}
-                >
-                  Hinterlegte Daten
-                </h3>
+                <h3 style={h3Style}>{t("mitglieder.storedData")}</h3>
                 <dl style={profileDl}>
-                  <dt style={dtStyle}>Mitgliedsnr.</dt>
-                  <dd style={ddStyle}>{profile.mitgliedsnummer}</dd>
-                  <dt style={dtStyle}>Vorname</dt>
-                  <dd style={ddStyle}>{profile.vorname}</dd>
-                  <dt style={dtStyle}>Nachname</dt>
-                  <dd style={ddStyle}>{profile.nachname}</dd>
-                  <dt style={dtStyle}>Telefon</dt>
-                  <dd style={ddStyle}>{profile.telefon}</dd>
-                  <dt style={dtStyle}>Adresse</dt>
-                  <dd style={ddStyle}>
-                    {profile.strasse}, {profile.plz} {profile.ort}
-                  </dd>
+                  <dt style={dtSt}>{t("mitglieder.memberNr")}</dt>
+                  <dd style={ddSt}>{profile.mitgliedsnummer}</dd>
+                  <dt style={dtSt}>{t("mitglieder.vorname")}</dt>
+                  <dd style={ddSt}>{profile.vorname}</dd>
+                  <dt style={dtSt}>{t("mitglieder.nachname")}</dt>
+                  <dd style={ddSt}>{profile.nachname}</dd>
+                  <dt style={dtSt}>{t("mitglieder.telefon")}</dt>
+                  <dd style={ddSt}>{profile.telefon}</dd>
+                  <dt style={dtSt}>{t("mitglieder.address")}</dt>
+                  <dd style={ddSt}>{profile.strasse}, {profile.plz} {profile.ort}</dd>
                   {profile.email && (
                     <>
-                      <dt style={dtStyle}>E-Mail</dt>
-                      <dd style={ddStyle}>{profile.email}</dd>
+                      <dt style={dtSt}>{t("mitglieder.email")}</dt>
+                      <dd style={ddSt}>{profile.email}</dd>
                     </>
                   )}
                   {profile.geburtsdatum && (
                     <>
-                      <dt style={dtStyle}>Geburtsdatum</dt>
-                      <dd style={ddStyle}>{profile.geburtsdatum}</dd>
+                      <dt style={dtSt}>{t("mitglieder.birthdate")}</dt>
+                      <dd style={ddSt}>{profile.geburtsdatum}</dd>
                     </>
                   )}
                 </dl>
               </div>
 
-              {/* Update form */}
-              <form
-                onSubmit={handleUpdate}
-                className="card"
-                style={{ padding: "1.5rem" }}
-              >
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.15rem",
-                    margin: "0 0 0.25rem",
-                    color: "var(--color-primary-dark)",
-                  }}
-                >
-                  Fehlende Angaben ergänzen
-                </h3>
-                <p
-                  style={{
-                    margin: "0 0 1.25rem",
-                    fontSize: "0.88rem",
-                    color: "var(--color-muted)",
-                  }}
-                >
-                  Diese Informationen werden für Ihren EasyVerein-Login benötigt.
+              <form onSubmit={handleUpdate} className="card" style={{ padding: "1.5rem" }}>
+                <h3 style={{ ...h3Style, margin: "0 0 0.25rem" }}>{t("mitglieder.missingTitle")}</h3>
+                <p style={{ margin: "0 0 1.25rem", fontSize: "0.88rem", color: "var(--color-muted)" }}>
+                  {t("mitglieder.missingIntro")}
                 </p>
 
                 <div style={fieldGroup}>
-                  <label style={label}>E-Mail-Adresse (für Login) *</label>
-                  <input
-                    style={input}
-                    required
-                    type="email"
-                    value={update.email}
-                    onChange={(e) =>
-                      setUpdate({ ...update, email: e.target.value })
-                    }
-                    placeholder="ihre.email@beispiel.de"
-                  />
+                  <label style={labelStyle}>{t("mitglieder.emailLabel")} *</label>
+                  <input style={inputStyle} required type="email" value={update.email}
+                    onChange={(e) => setUpdate({ ...update, email: e.target.value })}
+                    placeholder={t("mitglieder.placeholderEmail")} />
                 </div>
 
                 <div style={row}>
                   <div style={fieldGroup}>
-                    <label style={label}>Passwort (für Login) *</label>
-                    <input
-                      style={input}
-                      required
-                      type="password"
-                      value={update.passwort}
-                      onChange={(e) =>
-                        setUpdate({ ...update, passwort: e.target.value })
-                      }
-                      placeholder="Min. 8 Zeichen"
-                    />
+                    <label style={labelStyle}>{t("mitglieder.passwordLabel")} *</label>
+                    <input style={inputStyle} required type="password" value={update.passwort}
+                      onChange={(e) => setUpdate({ ...update, passwort: e.target.value })}
+                      placeholder={t("mitglieder.placeholderPassword")} />
                   </div>
                   <div style={fieldGroup}>
-                    <label style={label}>Passwort bestätigen *</label>
-                    <input
-                      style={input}
-                      required
-                      type="password"
-                      value={update.passwortConfirm}
-                      onChange={(e) =>
-                        setUpdate({
-                          ...update,
-                          passwortConfirm: e.target.value,
-                        })
-                      }
-                      placeholder="Nochmal eingeben"
-                    />
+                    <label style={labelStyle}>{t("mitglieder.passwordConfirmLabel")} *</label>
+                    <input style={inputStyle} required type="password" value={update.passwortConfirm}
+                      onChange={(e) => setUpdate({ ...update, passwortConfirm: e.target.value })}
+                      placeholder={t("mitglieder.placeholderPasswordConfirm")} />
                   </div>
                 </div>
 
                 <div style={fieldGroup}>
-                  <label style={label}>Geburtsdatum *</label>
-                  <input
-                    style={input}
-                    required
-                    type="date"
-                    value={update.geburtsdatum}
-                    onChange={(e) =>
-                      setUpdate({ ...update, geburtsdatum: e.target.value })
-                    }
-                  />
+                  <label style={labelStyle}>{t("mitglieder.birthdateLabel")} *</label>
+                  <input style={inputStyle} required type="date" value={update.geburtsdatum}
+                    onChange={(e) => setUpdate({ ...update, geburtsdatum: e.target.value })} />
                 </div>
 
-                {/* SEPA / Lastschrift */}
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.05rem",
-                    margin: "1.5rem 0 0.25rem",
-                    color: "var(--color-primary-dark)",
-                  }}
-                >
-                  Bankverbindung (Lastschriftverfahren)
+                <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", margin: "1.5rem 0 0.25rem", color: "var(--color-primary-dark)" }}>
+                  {t("mitglieder.bankTitle")}
                 </h3>
-                <p
-                  style={{
-                    margin: "0 0 1rem",
-                    fontSize: "0.85rem",
-                    color: "var(--color-muted)",
-                  }}
-                >
-                  Für den Mitgliedsbeitrag per SEPA-Lastschrift. Mandatsreferenz
-                  und Mandatsdatum werden automatisch gesetzt.
+                <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--color-muted)" }}>
+                  {t("mitglieder.bankIntro")}
                 </p>
 
                 <div style={fieldGroup}>
-                  <label style={label}>IBAN *</label>
-                  <input
-                    style={input}
-                    required
-                    value={update.iban}
-                    onChange={(e) =>
-                      setUpdate({ ...update, iban: e.target.value.toUpperCase().replace(/\s/g, "") })
-                    }
-                    placeholder="z. B. DE89 3704 0044 0532 0130 00"
-                  />
+                  <label style={labelStyle}>{t("mitglieder.iban")} *</label>
+                  <input style={inputStyle} required value={update.iban}
+                    onChange={(e) => setUpdate({ ...update, iban: e.target.value.toUpperCase().replace(/\s/g, "") })}
+                    placeholder={t("mitglieder.placeholderIban")} />
                 </div>
 
                 <div style={row}>
                   <div style={fieldGroup}>
-                    <label style={label}>BIC</label>
-                    <input
-                      style={input}
-                      value={update.bic}
-                      onChange={(e) =>
-                        setUpdate({ ...update, bic: e.target.value.toUpperCase() })
-                      }
-                      placeholder="z. B. COBADEFFXXX"
-                    />
+                    <label style={labelStyle}>{t("mitglieder.bic")}</label>
+                    <input style={inputStyle} value={update.bic}
+                      onChange={(e) => setUpdate({ ...update, bic: e.target.value.toUpperCase() })}
+                      placeholder={t("mitglieder.placeholderBic")} />
                   </div>
                   <div style={fieldGroup}>
-                    <label style={label}>Kontoinhaber *</label>
-                    <input
-                      style={input}
-                      required
-                      value={update.kontoinhaber}
-                      onChange={(e) =>
-                        setUpdate({ ...update, kontoinhaber: e.target.value })
-                      }
-                      placeholder="Vor- und Nachname"
-                    />
+                    <label style={labelStyle}>{t("mitglieder.accountHolder")} *</label>
+                    <input style={inputStyle} required value={update.kontoinhaber}
+                      onChange={(e) => setUpdate({ ...update, kontoinhaber: e.target.value })}
+                      placeholder={t("mitglieder.placeholderHolder")} />
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    ...infoBox,
-                    marginBottom: "1rem",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  <strong>Mandatsreferenz:</strong>{" "}
+                <div style={{ ...infoBox, marginBottom: "1rem", fontSize: "0.85rem" }}>
+                  <strong>{t("mitglieder.mandateRef")}</strong>{" "}
                   Bildung Mitgliedsnr. {profile?.mitgliedsnummer}
                   <br />
-                  <strong>Mandatsdatum:</strong>{" "}
+                  <strong>{t("mitglieder.mandateDate")}</strong>{" "}
                   {new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                    .toLocaleDateString("de-DE", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
+                    .toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}
                 </div>
 
-                <button
-                  type="submit"
-                  style={{
-                    ...btnPrimary,
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                  disabled={loading}
-                >
-                  {loading ? "Wird gespeichert …" : "Daten speichern & weiter"}
+                <button type="submit" style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }} disabled={loading}>
+                  {loading ? t("mitglieder.saving") : t("mitglieder.saveBtn")}
                 </button>
               </form>
             </>
@@ -707,150 +518,78 @@ export default function MitgliederPage() {
           {step === "done" && (
             <>
               <div className="section-head">
-                <h1 style={pageTitle}>Daten erfolgreich gespeichert</h1>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "var(--color-muted)",
-                    maxWidth: "56ch",
-                  }}
-                >
-                  Ihre Daten wurden aktualisiert. Nutzen Sie die folgende
-                  Anleitung, um sich bei EasyVerein einzuloggen.
+                <h1 style={pageTitle}>{t("mitglieder.doneTitle")}</h1>
+                <p style={{ margin: 0, color: "var(--color-muted)", maxWidth: "56ch" }}>
+                  {t("mitglieder.doneIntro")}
                 </p>
               </div>
 
-              {/* Anleitung: Einloggen */}
               <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.15rem",
-                    margin: "0 0 1rem",
-                    color: "var(--color-primary-dark)",
-                  }}
-                >
-                  Anleitung: Bei EasyVerein einloggen
-                </h3>
-                <ol
-                  style={{
-                    margin: 0,
-                    paddingLeft: "1.25rem",
-                    color: "var(--color-text)",
-                    lineHeight: 1.8,
-                    fontSize: "0.95rem",
-                  }}
-                >
+                <h3 style={h3Style}>{t("mitglieder.loginGuideTitle")}</h3>
+                <ol style={{ margin: 0, paddingLeft: "1.25rem", color: "var(--color-text)", lineHeight: 1.8, fontSize: "0.95rem" }}>
                   <li>
-                    Öffnen Sie:{" "}
-                    <a
-                      href="https://easyverein.com/public/AlemiIslam/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontWeight: 600 }}
-                    >
+                    {t("mitglieder.loginStep1")}{" "}
+                    <a href="https://easyverein.com/public/AlemiIslam/" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>
                       easyverein.com/public/AlemiIslam
                     </a>
                   </li>
                   <li>
-                    Geben Sie als <strong>Vereinskürzel</strong> ein:
+                    <strong>{t("mitglieder.loginStep2").replace("{bold}", "").replace("{/bold}", "")}</strong>
                   </li>
                 </ol>
 
-                <div
-                  style={{
-                    margin: "0.75rem 0 0.75rem 1.25rem",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "0.75rem 1.25rem",
-                    background: "var(--color-primary-dark)",
-                    color: "#ecfdf5",
-                    borderRadius: "var(--radius)",
-                    fontFamily: "monospace",
-                    fontSize: "1.2rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.04em",
-                  }}
-                >
+                <div style={{
+                  margin: "0.75rem 0 0.75rem 1.25rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0.75rem 1.25rem",
+                  background: "var(--color-primary-dark)",
+                  color: "#ecfdf5",
+                  borderRadius: "var(--radius)",
+                  fontFamily: "monospace",
+                  fontSize: "1.2rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                }}>
                   AlemiIslam
                 </div>
 
-                <ol
-                  start={3}
-                  style={{
-                    margin: 0,
-                    paddingLeft: "1.25rem",
-                    color: "var(--color-text)",
-                    lineHeight: 1.8,
-                    fontSize: "0.95rem",
-                  }}
-                >
+                <ol start={3} style={{ margin: 0, paddingLeft: "1.25rem", color: "var(--color-text)", lineHeight: 1.8, fontSize: "0.95rem" }}>
                   <li>
-                    Geben Sie Ihre <strong>E-Mail-Adresse</strong> und das{" "}
-                    <strong>Passwort</strong> ein, das Sie soeben gewählt haben.
+                    {t("mitglieder.loginStep3Email").replace(/\{bold\}/g, "").replace(/\{\/bold\}/g, "")}
                   </li>
                   <li>
-                    Klicken Sie auf <strong>&bdquo;Anmelden&ldquo;</strong>.
+                    {t("mitglieder.loginStep4").replace(/\{bold\}/g, "").replace(/\{\/bold\}/g, "")}
                   </li>
                 </ol>
               </div>
 
-              {/* EasyVerein App */}
               <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.15rem",
-                    margin: "0 0 0.5rem",
-                    color: "var(--color-primary-dark)",
-                  }}
-                >
-                  EasyVerein App installieren
-                </h3>
-                <p
-                  style={{
-                    margin: "0 0 1rem",
-                    fontSize: "0.92rem",
-                    color: "var(--color-muted)",
-                  }}
-                >
-                  Sie können auch bequem über die App auf Ihr Mitgliederprofil
-                  zugreifen. Verwenden Sie beim Login das Vereinskürzel{" "}
-                  <strong>AlemiIslam</strong>.
+                <h3 style={{ ...h3Style, margin: "0 0 0.5rem" }}>{t("mitglieder.appTitle")}</h3>
+                <p style={{ margin: "0 0 1rem", fontSize: "0.92rem", color: "var(--color-muted)" }}>
+                  {t("mitglieder.appIntro").replace(/\{bold\}/g, "").replace(/\{\/bold\}/g, "")}
                 </p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.easyverein.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="social-btn"
-                  >
-                    Android (Google Play)
+                  <a href="https://play.google.com/store/apps/details?id=com.easyverein.app" target="_blank" rel="noopener noreferrer" className="social-btn">
+                    {t("mitglieder.android")}
                   </a>
-                  <a
-                    href="https://apps.apple.com/app/easyverein/id1297726596"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="social-btn"
-                  >
-                    iPhone / iPad (App Store)
+                  <a href="https://apps.apple.com/app/easyverein/id1297726596" target="_blank" rel="noopener noreferrer" className="social-btn">
+                    {t("mitglieder.ios")}
                   </a>
                 </div>
               </div>
 
               <div style={infoBox}>
-                <strong>Wichtig:</strong> Das Vereinskürzel lautet immer{" "}
-                <strong>AlemiIslam</strong> (ohne Leerzeichen, Groß-/Kleinschreibung
-                beachten). Sollten Sie Probleme beim Login haben, wenden Sie sich
-                bitte an{" "}
-                <a href="mailto:info@alemiislam.de">info@alemiislam.de</a> oder
-                rufen Sie uns an unter{" "}
+                <strong>{t("mitglieder.important").split("{bold}")[0]}</strong>
+                <strong>AlemiIslam</strong>
+                {t("mitglieder.important").split("{/bold}").pop()}{" "}
+                <a href="mailto:info@alemiislam.de">info@alemiislam.de</a>{" "}
+                {t("mitglieder.orCall")}{" "}
                 <a href="tel:+49621524705">0621 52 47 05</a>.
               </div>
 
               <p style={{ marginTop: "1.5rem" }}>
-                <Link href="/">← Zur Startseite</Link>
+                <Link href="/">{t("mitglieder.backHome")}</Link>
               </p>
             </>
           )}
