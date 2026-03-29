@@ -77,11 +77,17 @@ export async function POST(request: Request) {
       internalNote: `Datenerfassung abgeschlossen am ${timestamp}`,
     });
 
-    // Update member login: set email, password, and activate account
-    await updateMemberLogin(memberId, {
-      emailOrUserName: email,
-      password: passwort,
-    });
+    // Update member login: set email, password, and activate account.
+    // Some API tokens lack write access to /member — treat as non-critical
+    // since contact details (the important part) already succeeded.
+    try {
+      await updateMemberLogin(memberId, {
+        emailOrUserName: email,
+        password: passwort,
+      });
+    } catch (loginErr) {
+      console.warn("Member login update failed (non-critical):", loginErr);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
