@@ -87,6 +87,8 @@ export function PrayerTimesSection() {
     };
   }, [locale]);
 
+  const prayerSourceNote = t("prayer.sourceNote");
+
   return (
     <section
       className="prayer-section"
@@ -141,7 +143,9 @@ export function PrayerTimesSection() {
           <div className="prayer-ticker-placeholder" />
         )}
 
-        <p className="prayer-band-source">{t("prayer.sourceNote")}</p>
+        {prayerSourceNote.trim() ? (
+          <p className="prayer-band-source">{prayerSourceNote}</p>
+        ) : null}
       </div>
     </section>
   );

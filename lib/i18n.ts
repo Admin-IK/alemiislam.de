@@ -72,7 +72,7 @@ const messages = {
       yatsi: "Nachtgebet",
       loading: "Gebetszeiten werden geladen …",
       error: "Gebetszeiten konnten nicht geladen werden. Bitte später erneut versuchen.",
-      sourceNote: "Angaben über IGMG-Kalender-API (Stadt-ID 20133).",
+      sourceNote: "",
       ticker: {
         imsak: "Imsak",
         gunes: "Sonne",
@@ -264,7 +264,7 @@ const messages = {
       yatsi: "Yatsı",
       loading: "Namaz vakitleri yükleniyor …",
       error: "Namaz vakitleri yüklenemedi. Lütfen daha sonra tekrar deneyin.",
-      sourceNote: "IGMG takvim API (şehir ID 20133).",
+      sourceNote: "",
       ticker: {
         imsak: "İmsak",
         gunes: "Güneş",
