@@ -7,6 +7,7 @@ import {
   IGMG_URL,
 } from "@/lib/site";
 import { ContactBlock } from "./components/ContactBlock";
+import { FacebookPageEmbed } from "./components/FacebookPageEmbed";
 import { PrayerTimesSection } from "./components/PrayerTimesSection";
 import { SiteHeader } from "./components/SiteHeader";
 import { useLocale } from "./components/LocaleProvider";
@@ -146,22 +147,35 @@ export default function HomePage() {
 
         <section id="aktuelles" className="section">
           <div className="container">
-            <div className="grid-2">
-              <div>
-                <div className="section-head">
-                  <h2>{t("news.title")}</h2>
-                  <p>
-                    {t("news.introBefore")}{" "}
-                    <a
-                      href={FACEBOOK_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {t("news.facebookPage")}
-                    </a>
-                    {t("news.introAfter")}
-                  </p>
-                </div>
+            <div className="section-head">
+              <h2>{t("news.title")}</h2>
+              <p>
+                {t("news.introBefore")}{" "}
+                <a
+                  href={FACEBOOK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("news.facebookPage")}
+                </a>
+                {t("news.introAfter")}
+              </p>
+            </div>
+            <div className="grid-2 news-feed-grid">
+              <div className="news-feed-main">
+                <p
+                  className="news-feed-note"
+                  style={{
+                    margin: "0 0 1rem",
+                    fontSize: "0.95rem",
+                    color: "var(--color-muted)",
+                  }}
+                >
+                  {t("news.feedNote")}
+                </p>
+                <FacebookPageEmbed iframeTitle={t("news.embedIframeTitle")} />
+              </div>
+              <div className="news-feed-side">
                 <ul className="news-list card">
                   <li>
                     <div className="news-meta">{t("news.metaFed")}</div>
@@ -184,47 +198,50 @@ export default function HomePage() {
                     </span>
                   </li>
                 </ul>
-              </div>
-              <div className="card" style={{ alignSelf: "start" }}>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.35rem",
-                    marginTop: 0,
-                    color: "var(--color-primary-dark)",
-                  }}
+                <div
+                  className="card"
+                  style={{ alignSelf: "start", marginTop: "1.25rem" }}
                 >
-                  {t("news.shortTitle")}
-                </h3>
-                <dl style={{ margin: 0 }}>
-                  <dt
+                  <h3
                     style={{
-                      fontSize: "0.78rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                      color: "var(--color-muted)",
+                      fontFamily: "var(--font-display)",
+                      fontSize: "1.35rem",
+                      marginTop: 0,
+                      color: "var(--color-primary-dark)",
                     }}
                   >
-                    {t("news.dtClub")}
-                  </dt>
-                  <dd style={{ margin: "0.25rem 0 1rem", fontWeight: 600 }}>
-                    IGMG Ortsverein Ludwigshafen West e.V.
-                  </dd>
-                  <dt
-                    style={{
-                      fontSize: "0.78rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                      color: "var(--color-muted)",
-                    }}
-                  >
-                    {t("news.dtAddress")}
-                  </dt>
-                  <dd style={{ margin: "0.25rem 0 0", fontWeight: 600 }}>
-                    Krummlachstraße 6<br />
-                    67059 Ludwigshafen am Rhein
-                  </dd>
-                </dl>
+                    {t("news.shortTitle")}
+                  </h3>
+                  <dl style={{ margin: 0 }}>
+                    <dt
+                      style={{
+                        fontSize: "0.78rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        color: "var(--color-muted)",
+                      }}
+                    >
+                      {t("news.dtClub")}
+                    </dt>
+                    <dd style={{ margin: "0.25rem 0 1rem", fontWeight: 600 }}>
+                      IGMG Ortsverein Ludwigshafen West e.V.
+                    </dd>
+                    <dt
+                      style={{
+                        fontSize: "0.78rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        color: "var(--color-muted)",
+                      }}
+                    >
+                      {t("news.dtAddress")}
+                    </dt>
+                    <dd style={{ margin: "0.25rem 0 0", fontWeight: 600 }}>
+                      Krummlachstraße 6<br />
+                      67059 Ludwigshafen am Rhein
+                    </dd>
+                  </dl>
+                </div>
               </div>
             </div>
           </div>

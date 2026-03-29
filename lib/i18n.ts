@@ -121,9 +121,14 @@ const messages = {
     news: {
       title: "Aktuelles & Nachrichten",
       introBefore:
-        "Verbandspolitische Meldungen und Freitagspredigten erscheinen zentral auf der Website der IGMG. Hier verweisen wir auf ausgewählte Themen – ergänzend zu unserem",
-      facebookPage: "Facebook-Auftritt",
-      introAfter: ".",
+        "Unten sehen Sie die aktuelle öffentliche Timeline wie auf ",
+      facebookPage: "Facebook",
+      introAfter:
+        ". Verbandspolitische Meldungen und Freitagspredigten finden Sie auf der Website der IGMG. Weitere Hinweise:",
+      feedNote:
+        "Hinweis: Anzeige wird von Meta/Facebook geladen; es gelten deren Bedingungen.",
+      embedIframeTitle:
+        "Facebook: Timeline der Alemi Islam Moschee (eingebettete Vorschau)",
       metaFed: "IGMG · Verband",
       linkFed: "Pressemitteilungen und Freitagspredigten der IGMG",
       metaLocal: "Gemeinde",
@@ -177,7 +182,7 @@ const messages = {
         "Wenn Sie uns kontaktieren, verarbeiten wir die von Ihnen mitgeteilten Daten zur Bearbeitung der Anfrage. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen bzw. Vertrag) bzw. Art. 6 Abs. 1 lit. f DSGVO (allgemeine Anfragen).",
       s4Title: "4. Verlinkungen (Facebook, IGMG, EasyVerein, Karten)",
       s4Body:
-        "Unsere Website enthält Links zu externen Angeboten (z. B. Facebook, IGMG-Bundesseite, EasyVerein, OpenStreetMap). Für deren Inhalte und Datenschutz sind ausschließlich die jeweiligen Betreiber verantwortlich. Bitte beachten Sie deren Datenschutzhinweise.",
+        "Unsere Website enthält Links zu externen Angeboten sowie auf der Startseite ein eingebettetes Anzeigeelement für unseren Facebook-Auftritt (Meta Page Plugin). Dabei wird Inhalt von Servern von Meta/Facebook geladen. Für Inhalte und Datenschutz bei Facebook, IGMG-Bundesseite, EasyVerein und OpenStreetMap sind die jeweiligen Betreiber verantwortlich. Bitte beachten Sie deren Datenschutzhinweise.",
       s5Title: "5. Ihre Rechte",
       s5Body:
         "Sie haben nach Maßgabe der gesetzlichen Vorgaben Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit sowie Widerspruch gegen die Verarbeitung. Außerdem steht Ihnen ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde zu.",
@@ -249,7 +254,7 @@ const messages = {
       eyebrow: "Ludwigshafen am Rhein",
       title: "İmanı birlikte yaşamak",
       lead:
-        "Alemi İslam Camii, IGMG Ludwigshafen Batı Yerel Derneği e.V.’nin ibadethanesidir. Komşularımıza açığız; namaz, eğitim ve karşılaşmaya davet ediyoruz.",
+        "Alemi İslam Camii, IGMG Ortsverein Ludwigshafen West e.V.'nin ibadethanesidir. Komşularımıza açığız; namaz, eğitim ve karşılaşmaya davet ediyoruz.",
       visit: "Ziyaret planlayın",
       facebook: "Facebook",
     },
@@ -312,10 +317,14 @@ const messages = {
     },
     news: {
       title: "Güncel & haberler",
-      introBefore:
-        "Birlik politikasına ilişkin duyurular ve Cuma hutbeleri IGMG sitesinde yayımlanır. Burada seçili konulara yönlendiriyoruz – ayrıca",
-      facebookPage: "Facebook sayfamıza",
-      introAfter: " bakabilirsiniz.",
+      introBefore: "Altta ",
+      facebookPage: "Facebook",
+      introAfter:
+        "‘taki güncel herkese açık zaman tünelini görürsünüz. Birlik duyuruları ve Cuma hutbeleri IGMG sitesindedir. Diğer bağlantılar:",
+      feedNote:
+        "Not: Görünüm Meta/Facebook tarafından yüklenir; koşullar ilgili platforma aittir.",
+      embedIframeTitle:
+        "Facebook: Alemi İslam Camii zaman tüneli (gömülü önizleme)",
       metaFed: "IGMG · Birlik",
       linkFed: "IGMG basın açıklamaları ve Cuma hutbeleri",
       metaLocal: "Cemaat",
@@ -344,14 +353,14 @@ const messages = {
     footer: {
       title: "Alemi İslam Camii",
       line:
-        "IGMG Ludwigshafen Batı Yerel Derneği e.V. · Krummlachstraße 6 · 67059 Ludwigshafen",
+        "IGMG Ortsverein Ludwigshafen West e.V. · Krummlachstraße 6 · 67059 Ludwigshafen",
       imprint: "Künye",
       privacy: "Gizlilik",
       igmgFederal: "IGMG federal sitesi",
       facebook: "Facebook",
     },
     subpage: {
-      footerCopyright: "© {year} IGMG Ludwigshafen Batı Yerel Derneği e.V.",
+      footerCopyright: "© {year} IGMG Ortsverein Ludwigshafen West e.V.",
     },
     privacy: {
       title: "Gizlilik bildirimi",
@@ -359,7 +368,7 @@ const messages = {
         "Bu web sitesini kullanımınız sırasında kişisel verilerin işlenmesi hakkında bilgi veriyoruz. Esas olarak yürürlükteki yasal düzenlemeler (özellikle GDPR/DSGVO ve BDSG) geçerlidir.",
       s1Title: "1. Sorumlu birim",
       s1Body:
-        "Veri koruma yasalarına göre sorumlu: IGMG Ludwigshafen Batı Yerel Derneği e.V., Alemi İslam Camii aracılığıyla temsil edilir, Krummlachstraße 6, 67059 Ludwigshafen am Rhein, telefon 0621 52 47 05, e-posta info@alemiislam.de.",
+        "Veri koruma yasalarına göre sorumlu: IGMG Ortsverein Ludwigshafen West e.V., Alemi İslam Camii aracılığıyla temsil edilir, Krummlachstraße 6, 67059 Ludwigshafen am Rhein, telefon 0621 52 47 05, e-posta info@alemiislam.de.",
       s2Title: "2. Barındırma ve sunucu günlükleri",
       s2Body:
         "Site bir barındırma sağlayıcısında çalışır. Sayfa çağrılarında sağlayıcı teknik olarak gerekli verileri (ör. IP adresi, tarih ve saat, aktarılan veri miktarı) işleyebilir. Amaç sitenin sunumu ve güvenliğidir; hukuki dayanak GDPR md. 6(1)(f). Barındırıcı adı ve iletişim bilgileri ile gerekirse veri işleme sözleşmesi eklenmelidir.",
@@ -368,7 +377,7 @@ const messages = {
         "Bize ulaştığınızda talebinizi yanıtlamak için ilettiğiniz verileri işleriz. Hukuki dayanak GDPR md. 6(1)(b) (sözleşme öncesi/ sözleşme) veya md. 6(1)(f) (genel sorular).",
       s4Title: "4. Bağlantılar (Facebook, IGMG, EasyVerein, haritalar)",
       s4Body:
-        "Sitemiz harici hizmetlere bağlantılar içerir (ör. Facebook, IGMG ana site, EasyVerein, OpenStreetMap). İçerik ve gizlilik için yalnızca ilgili işletmeler sorumludur; lütfen onların gizlilik bildirimlerini okuyun.",
+        "Sitemiz harici hizmetlere bağlantılar içerir; ana sayfada ayrıca Facebook sayfamız için Meta Page Plugin ile gömülü bir görünüm bulunur ve içerik Meta/Facebook sunucularından yüklenir. Facebook, IGMG ana site, EasyVerein ve OpenStreetMap için içerik ve gizlilikten yalnızca ilgili işletmeler sorumludur; lütfen bildirimlerini okuyun.",
       s5Title: "5. Haklarınız",
       s5Body:
         "Yasal düzenlemelere göre bilgi alma, düzeltme, silme, işlemeyi kısıtlama, veri taşınabilirliği ve işlemeye itiraz haklarına sahipsiniz. Ayrıca bir veri koruma denetim otoritesine şikâyet hakkınız vardır.",
@@ -382,7 +391,7 @@ const messages = {
     impressum: {
       title: "Künye (Impressum)",
       orgBlock:
-        "IGMG Ludwigshafen Batı Yerel Derneği e.V.\nAlemi İslam Camii",
+        "IGMG Ortsverein Ludwigshafen West e.V.\nAlemi İslam Camii",
       note:
         "Yetkili temsilciler, sicil mahkemesi, dernek sicil numarası ve KDV kimlik numarası; yayın için veriler dernekten teyit edilip buraya eklenmelidir.",
       back: "← Ana sayfaya",
