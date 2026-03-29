@@ -80,11 +80,36 @@ export default function AdminPage() {
 
   // Extract date from internalNote for sorting
   const sortedMembers = [...filtered].sort((a, b) => {
-    // Completed members with notes first (most recent)
     if (a.internalNote && !b.internalNote) return -1;
     if (!a.internalNote && b.internalNote) return 1;
     return a.familyName.localeCompare(b.familyName, "de");
   });
+
+  // Group completed members by day for the activity log
+  const dailyLog = data
+    ? (() => {
+        const grouped: Record<string, MemberStatus[]> = {};
+        for (const m of data.members) {
+          if (!m.internalNote) continue;
+          // Extract date from "Datenerfassung abgeschlossen am DD.MM.YYYY, HH:MM"
+          const match = m.internalNote.match(
+            /(\d{2}\.\d{2}\.\d{4})/
+          );
+          const day = match ? match[1] : "Unbekannt";
+          if (!grouped[day]) grouped[day] = [];
+          grouped[day].push(m);
+        }
+        // Sort days descending (newest first)
+        return Object.entries(grouped).sort(([a], [b]) => {
+          const [da, ma, ya] = a.split(".").map(Number);
+          const [db, mb, yb] = b.split(".").map(Number);
+          return (
+            new Date(yb, mb - 1, db).getTime() -
+            new Date(ya, ma - 1, da).getTime()
+          );
+        });
+      })()
+    : [];
 
   return (
     <SubpageShell>
@@ -260,6 +285,121 @@ export default function AdminPage() {
                   onClick={() => setFilter("pending")}
                 />
               </div>
+
+              {/* Daily activity log */}
+              {dailyLog.length > 0 && (
+                <div
+                  className="card"
+                  style={{ padding: "1.25rem", marginBottom: "1.5rem" }}
+                >
+                  <h2
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "1.15rem",
+                      fontWeight: 600,
+                      margin: "0 0 1rem",
+                      color: "var(--color-primary-dark)",
+                    }}
+                  >
+                    Tägliche Aktivität
+                  </h2>
+                  {dailyLog.map(([day, members]) => (
+                    <div key={day} style={{ marginBottom: "1rem" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          marginBottom: "0.5rem",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "0.9rem",
+                            color: "var(--color-primary-dark)",
+                          }}
+                        >
+                          {day}
+                        </span>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "0.1rem 0.55rem",
+                            borderRadius: "999px",
+                            fontSize: "0.72rem",
+                            fontWeight: 700,
+                            color: "#fff",
+                            background: "var(--color-primary)",
+                          }}
+                        >
+                          {members.length}{" "}
+                          {members.length === 1 ? "Mitglied" : "Mitglieder"}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.35rem",
+                          paddingLeft: "0.5rem",
+                          borderLeft: "3px solid var(--color-primary)",
+                        }}
+                      >
+                        {members.map((m) => {
+                          const time =
+                            m.internalNote.match(/(\d{2}:\d{2})/)?.[1] || "";
+                          return (
+                            <div
+                              key={m.id}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.75rem",
+                                fontSize: "0.88rem",
+                              }}
+                            >
+                              {time && (
+                                <span
+                                  style={{
+                                    fontVariantNumeric: "tabular-nums",
+                                    fontWeight: 600,
+                                    color: "var(--color-muted)",
+                                    minWidth: "3rem",
+                                  }}
+                                >
+                                  {time}
+                                </span>
+                              )}
+                              <span style={{ fontWeight: 600 }}>
+                                {m.firstName} {m.familyName}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: "var(--color-muted)",
+                                }}
+                              >
+                                Nr. {m.membershipNumber}
+                              </span>
+                              {m.email && (
+                                <span
+                                  style={{
+                                    fontSize: "0.78rem",
+                                    color: "var(--color-muted)",
+                                  }}
+                                >
+                                  {m.email}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Table */}
               <div
