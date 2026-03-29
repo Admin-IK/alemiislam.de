@@ -140,6 +140,7 @@ export async function updateContactDetails(
     sepaMandate?: string;
     sepaDate?: string;
     methodOfPayment?: number;
+    internalNote?: string;
   }
 ) {
   const res = await apiFetch(`/contact-details/${contactId}`, {
@@ -187,4 +188,88 @@ export async function updateMemberLogin(
   }
 
   return res.json();
+}
+
+/* ------------------------------------------------------------------ */
+/*  Fetch all members with status info (for admin dashboard)          */
+/* ------------------------------------------------------------------ */
+
+export type MemberStatus = {
+  id: number;
+  membershipNumber: string;
+  firstName: string;
+  familyName: string;
+  email: string;
+  phone: string;
+  hasEmail: boolean;
+  hasIban: boolean;
+  hasDateOfBirth: boolean;
+  hasPassword: boolean;
+  internalNote: string;
+  status: "completed" | "partial" | "pending";
+};
+
+export async function fetchAllMembers(): Promise<MemberStatus[]> {
+  const allMembers: MemberStatus[] = [];
+  let url: string | null =
+    "/member?limit=100&query=" +
+    encodeURIComponent(
+      "{id,membershipNumber,emailOrUserName,requirePasswordChange," +
+        "contactDetails{id,firstName,familyName,privateEmail,mobilePhone,privatePhone," +
+        "iban,dateOfBirth,internalNote}}"
+    );
+
+  while (url) {
+    const res = await apiFetch(url);
+    if (!res.ok) {
+      console.error("EasyVerein fetch members failed:", res.status);
+      break;
+    }
+
+    const data = await res.json();
+    const results = data.results ?? [];
+
+    for (const m of results) {
+      const cd = typeof m.contactDetails === "object" ? m.contactDetails : null;
+      if (!cd) continue;
+
+      const hasEmail = !!(cd.privateEmail && cd.privateEmail.includes("@"));
+      const hasIban = !!cd.iban;
+      const hasDob = !!cd.dateOfBirth;
+      const hasPassword = !!(m.emailOrUserName && m.emailOrUserName.includes("@"));
+      const note = cd.internalNote || "";
+
+      let status: MemberStatus["status"] = "pending";
+      if (hasEmail && hasIban && hasDob && hasPassword) {
+        status = "completed";
+      } else if (hasEmail || hasIban || hasDob) {
+        status = "partial";
+      }
+
+      allMembers.push({
+        id: m.id,
+        membershipNumber: m.membershipNumber || "–",
+        firstName: cd.firstName || "",
+        familyName: cd.familyName || "",
+        email: cd.privateEmail || "",
+        phone: cd.mobilePhone || cd.privatePhone || "",
+        hasEmail,
+        hasIban,
+        hasDateOfBirth: hasDob,
+        hasPassword,
+        internalNote: note,
+        status,
+      });
+    }
+
+    // Pagination
+    if (data.next) {
+      const nextUrl = new URL(data.next);
+      url = nextUrl.pathname.replace("/api/v2.0", "") + nextUrl.search;
+    } else {
+      url = null;
+    }
+  }
+
+  return allMembers;
 }

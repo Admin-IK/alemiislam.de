@@ -54,7 +54,17 @@ export async function POST(request: Request) {
     // Mandate reference: "Bildung Mitgliedsnr. {number}"
     const sepaMandate = `Bildung Mitgliedsnr. ${mitgliedsnummer || ""}`.trim();
 
-    // Update contact details (email, birthdate, SEPA)
+    // Timestamp for internal tracking
+    const now = new Date();
+    const timestamp = now.toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // Update contact details (email, birthdate, SEPA, tracking note)
     await updateContactDetails(contactId, {
       privateEmail: email,
       dateOfBirth: isoDate,
@@ -64,6 +74,7 @@ export async function POST(request: Request) {
       sepaMandate,
       sepaDate,
       methodOfPayment: 1, // 1 = Lastschrift
+      internalNote: `Datenerfassung abgeschlossen am ${timestamp}`,
     });
 
     // Update member login: set email, password, and activate account

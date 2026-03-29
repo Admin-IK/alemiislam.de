@@ -176,6 +176,47 @@ const stepDot = (active: boolean): React.CSSProperties => ({
 });
 
 /* ------------------------------------------------------------------ */
+/*  IBAN validation (ISO 13616 mod-97 checksum)                       */
+/* ------------------------------------------------------------------ */
+
+function validateIBAN(raw: string): string | null {
+  const iban = raw.replace(/\s/g, "").toUpperCase();
+
+  // Basic format: 2 letters, 2 digits, 12-30 alphanumeric
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{12,30}$/.test(iban)) {
+    return "Ungültiges IBAN-Format. Bitte prüfen Sie Ihre Eingabe.";
+  }
+
+  // Country-specific length check (common ones)
+  const lengths: Record<string, number> = {
+    DE: 22, AT: 20, CH: 21, FR: 27, NL: 18, BE: 16, IT: 27,
+    ES: 24, PT: 25, PL: 28, TR: 26, GB: 22, LU: 20, DK: 18,
+  };
+  const country = iban.slice(0, 2);
+  if (lengths[country] && iban.length !== lengths[country]) {
+    return `Eine ${country}-IBAN muss ${lengths[country]} Zeichen haben (eingegeben: ${iban.length}).`;
+  }
+
+  // Mod-97 checksum: move first 4 chars to end, convert letters to numbers
+  const rearranged = iban.slice(4) + iban.slice(0, 4);
+  const numeric = rearranged.replace(/[A-Z]/g, (ch) =>
+    String(ch.charCodeAt(0) - 55)
+  );
+
+  // BigInt-free mod 97 (process in chunks to avoid overflow)
+  let remainder = 0;
+  for (let i = 0; i < numeric.length; i++) {
+    remainder = (remainder * 10 + Number(numeric[i])) % 97;
+  }
+
+  if (remainder !== 1) {
+    return "Die IBAN-Prüfziffer ist ungültig. Bitte überprüfen Sie die Nummer.";
+  }
+
+  return null; // valid
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -236,6 +277,12 @@ export default function MitgliederPage() {
     }
     if (update.passwort.length < 8) {
       setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+      return;
+    }
+
+    const ibanError = validateIBAN(update.iban);
+    if (ibanError) {
+      setError(ibanError);
       return;
     }
 
