@@ -85,29 +85,28 @@ export default function AdminPage() {
     return a.familyName.localeCompare(b.familyName, "de");
   });
 
-  // Group completed members by day for the activity log
-  const dailyLog = data
+  // Recent activity: members who updated in the last 7 days
+  const recentActivity = data
     ? (() => {
-        const grouped: Record<string, MemberStatus[]> = {};
+        const now = Date.now();
+        const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+        const recent: { member: MemberStatus; date: Date; dayLabel: string; time: string }[] = [];
+
         for (const m of data.members) {
           if (!m.internalNote) continue;
-          // Extract date from "Datenerfassung abgeschlossen am DD.MM.YYYY, HH:MM"
-          const match = m.internalNote.match(
-            /(\d{2}\.\d{2}\.\d{4})/
-          );
-          const day = match ? match[1] : "Unbekannt";
-          if (!grouped[day]) grouped[day] = [];
-          grouped[day].push(m);
+          const match = m.internalNote.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+          if (!match) continue;
+          const [, dd, mm, yyyy] = match;
+          const timeMatch = m.internalNote.match(/(\d{2}:\d{2})/);
+          const time = timeMatch ? timeMatch[1] : "";
+          const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+          if (date.getTime() < sevenDaysAgo) continue;
+          recent.push({ member: m, date, dayLabel: `${dd}.${mm}.${yyyy}`, time });
         }
-        // Sort days descending (newest first)
-        return Object.entries(grouped).sort(([a], [b]) => {
-          const [da, ma, ya] = a.split(".").map(Number);
-          const [db, mb, yb] = b.split(".").map(Number);
-          return (
-            new Date(yb, mb - 1, db).getTime() -
-            new Date(ya, ma - 1, da).getTime()
-          );
-        });
+
+        // Sort newest first
+        recent.sort((a, b) => b.date.getTime() - a.date.getTime() || b.time.localeCompare(a.time));
+        return recent;
       })()
     : [];
 
@@ -286,120 +285,108 @@ export default function AdminPage() {
                 />
               </div>
 
-              {/* Daily activity log */}
-              {dailyLog.length > 0 && (
-                <div
-                  className="card"
-                  style={{ padding: "1.25rem", marginBottom: "1.5rem" }}
+              {/* Last 7 days activity */}
+              <div
+                className="card"
+                style={{ padding: "1.25rem", marginBottom: "1.5rem" }}
+              >
+                <h2
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "1.15rem",
+                    fontWeight: 600,
+                    margin: "0 0 0.25rem",
+                    color: "var(--color-primary-dark)",
+                  }}
                 >
-                  <h2
+                  Letzte 7 Tage
+                </h2>
+                <p
+                  style={{
+                    margin: "0 0 0.75rem",
+                    fontSize: "0.82rem",
+                    color: "var(--color-muted)",
+                  }}
+                >
+                  {recentActivity.length}{" "}
+                  {recentActivity.length === 1
+                    ? "Aktualisierung"
+                    : "Aktualisierungen"}
+                </p>
+                {recentActivity.length === 0 ? (
+                  <p
                     style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "1.15rem",
-                      fontWeight: 600,
-                      margin: "0 0 1rem",
-                      color: "var(--color-primary-dark)",
+                      margin: 0,
+                      fontSize: "0.9rem",
+                      color: "var(--color-muted)",
                     }}
                   >
-                    Tägliche Aktivität
-                  </h2>
-                  {dailyLog.map(([day, members]) => (
-                    <div key={day} style={{ marginBottom: "1rem" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.75rem",
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        <span
+                    Keine Aktivität in den letzten 7 Tagen.
+                  </p>
+                ) : (
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      fontSize: "0.86rem",
+                    }}
+                  >
+                    <tbody>
+                      {recentActivity.map((r) => (
+                        <tr
+                          key={r.member.id}
                           style={{
-                            fontWeight: 700,
-                            fontSize: "0.9rem",
-                            color: "var(--color-primary-dark)",
+                            borderBottom: "1px solid var(--color-border)",
                           }}
                         >
-                          {day}
-                        </span>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            padding: "0.1rem 0.55rem",
-                            borderRadius: "999px",
-                            fontSize: "0.72rem",
-                            fontWeight: 700,
-                            color: "#fff",
-                            background: "var(--color-primary)",
-                          }}
-                        >
-                          {members.length}{" "}
-                          {members.length === 1 ? "Mitglied" : "Mitglieder"}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "0.35rem",
-                          paddingLeft: "0.5rem",
-                          borderLeft: "3px solid var(--color-primary)",
-                        }}
-                      >
-                        {members.map((m) => {
-                          const time =
-                            m.internalNote.match(/(\d{2}:\d{2})/)?.[1] || "";
-                          return (
-                            <div
-                              key={m.id}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.75rem",
-                                fontSize: "0.88rem",
-                              }}
-                            >
-                              {time && (
-                                <span
-                                  style={{
-                                    fontVariantNumeric: "tabular-nums",
-                                    fontWeight: 600,
-                                    color: "var(--color-muted)",
-                                    minWidth: "3rem",
-                                  }}
-                                >
-                                  {time}
-                                </span>
-                              )}
-                              <span style={{ fontWeight: 600 }}>
-                                {m.firstName} {m.familyName}
+                          <td
+                            style={{
+                              padding: "0.45rem 0.5rem 0.45rem 0",
+                              fontVariantNumeric: "tabular-nums",
+                              color: "var(--color-muted)",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {r.dayLabel}
+                            {r.time && (
+                              <span style={{ marginLeft: "0.4rem" }}>
+                                {r.time}
                               </span>
-                              <span
-                                style={{
-                                  fontSize: "0.8rem",
-                                  color: "var(--color-muted)",
-                                }}
-                              >
-                                Nr. {m.membershipNumber}
-                              </span>
-                              {m.email && (
-                                <span
-                                  style={{
-                                    fontSize: "0.78rem",
-                                    color: "var(--color-muted)",
-                                  }}
-                                >
-                                  {m.email}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                            )}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.45rem 0.5rem",
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {r.member.firstName} {r.member.familyName}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.45rem 0.5rem",
+                              color: "var(--color-muted)",
+                              fontSize: "0.82rem",
+                            }}
+                          >
+                            Nr. {r.member.membershipNumber}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.45rem 0 0.45rem 0.5rem",
+                              color: "var(--color-muted)",
+                              fontSize: "0.82rem",
+                            }}
+                          >
+                            {r.member.email || "–"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
 
               {/* Table */}
               <div
@@ -428,8 +415,7 @@ export default function AdminPage() {
                       <Th align="center">E-Mail</Th>
                       <Th align="center">IBAN</Th>
                       <Th align="center">Geb.</Th>
-                      <Th align="center">Login</Th>
-                      <Th>Erfassung</Th>
+                      <Th>Aktiviert am</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -470,20 +456,19 @@ export default function AdminPage() {
                         <Td align="center">
                           {m.hasDateOfBirth ? "\u2705" : "\u274C"}
                         </Td>
-                        <Td align="center">
-                          {m.hasPassword ? "\u2705" : "\u274C"}
-                        </Td>
                         <Td>
-                          <span
-                            style={{
-                              fontSize: "0.78rem",
-                              color: m.internalNote
-                                ? "#16a34a"
-                                : "var(--color-muted)",
-                            }}
-                          >
-                            {m.internalNote || "–"}
-                          </span>
+                          {(() => {
+                            if (!m.internalNote) return <span style={{ color: "var(--color-muted)" }}>Nie</span>;
+                            const match = m.internalNote.match(/(\d{2}\.\d{2}\.\d{4})/);
+                            const timeMatch = m.internalNote.match(/(\d{2}:\d{2})/);
+                            if (!match) return <span style={{ color: "var(--color-muted)" }}>Nie</span>;
+                            return (
+                              <span style={{ fontSize: "0.82rem", color: "#16a34a", fontWeight: 600 }}>
+                                {match[1]}
+                                {timeMatch && <span style={{ fontWeight: 400, marginLeft: "0.3rem" }}>{timeMatch[1]}</span>}
+                              </span>
+                            );
+                          })()}
                         </Td>
                       </tr>
                     ))}
