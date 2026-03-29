@@ -28,8 +28,6 @@ type ProfileData = VerifyForm & {
 
 type ProfileUpdate = {
   email: string;
-  passwort: string;
-  passwortConfirm: string;
   geburtsdatum: string;
 };
 
@@ -47,8 +45,6 @@ const EMPTY_VERIFY: VerifyForm = {
 
 const EMPTY_UPDATE: ProfileUpdate = {
   email: "",
-  passwort: "",
-  passwortConfirm: "",
   geburtsdatum: "",
 };
 
@@ -224,15 +220,6 @@ export default function MitgliederPage() {
     e.preventDefault();
     setError("");
 
-    if (update.passwort !== update.passwortConfirm) {
-      setError("Die Passwörter stimmen nicht überein.");
-      return;
-    }
-    if (update.passwort.length > 0 && update.passwort.length < 8) {
-      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -243,7 +230,6 @@ export default function MitgliederPage() {
           memberId: profile?.memberId,
           contactId: profile?.contactId,
           email: update.email,
-          passwort: update.passwort,
           geburtsdatum: update.geburtsdatum,
         }),
       });
@@ -507,38 +493,6 @@ export default function MitgliederPage() {
                   />
                 </div>
 
-                <div style={row}>
-                  <div style={fieldGroup}>
-                    <label style={label}>Passwort (für Login) *</label>
-                    <input
-                      style={input}
-                      required
-                      type="password"
-                      value={update.passwort}
-                      onChange={(e) =>
-                        setUpdate({ ...update, passwort: e.target.value })
-                      }
-                      placeholder="Min. 8 Zeichen"
-                    />
-                  </div>
-                  <div style={fieldGroup}>
-                    <label style={label}>Passwort bestätigen *</label>
-                    <input
-                      style={input}
-                      required
-                      type="password"
-                      value={update.passwortConfirm}
-                      onChange={(e) =>
-                        setUpdate({
-                          ...update,
-                          passwortConfirm: e.target.value,
-                        })
-                      }
-                      placeholder="Nochmal eingeben"
-                    />
-                  </div>
-                </div>
-
                 <div style={fieldGroup}>
                   <label style={label}>Geburtsdatum *</label>
                   <input
@@ -583,6 +537,7 @@ export default function MitgliederPage() {
                 </p>
               </div>
 
+              {/* Schritt 1: Passwort anfordern */}
               <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
                 <h3
                   style={{
@@ -592,9 +547,8 @@ export default function MitgliederPage() {
                     color: "var(--color-primary-dark)",
                   }}
                 >
-                  Anleitung: Bei EasyVerein einloggen
+                  Schritt 1: Passwort erstellen
                 </h3>
-
                 <ol
                   style={{
                     margin: 0,
@@ -605,7 +559,7 @@ export default function MitgliederPage() {
                   }}
                 >
                   <li>
-                    Öffnen Sie die EasyVerein-Webseite:{" "}
+                    Öffnen Sie die Login-Seite:{" "}
                     <a
                       href="https://easyverein.com/public/AlemiIslam/"
                       target="_blank"
@@ -616,9 +570,52 @@ export default function MitgliederPage() {
                     </a>
                   </li>
                   <li>
-                    Klicken Sie oben rechts auf{" "}
-                    <strong>&bdquo;Mitgliederbereich&ldquo;</strong> oder{" "}
-                    <strong>&bdquo;Login&ldquo;</strong>.
+                    Klicken Sie auf{" "}
+                    <strong>&bdquo;Passwort vergessen?&ldquo;</strong>
+                  </li>
+                  <li>
+                    Geben Sie die <strong>E-Mail-Adresse</strong> ein, die Sie
+                    soeben hinterlegt haben.
+                  </li>
+                  <li>
+                    Sie erhalten eine E-Mail mit einem Link zum{" "}
+                    <strong>Passwort erstellen</strong>. Prüfen Sie auch Ihren
+                    Spam-Ordner.
+                  </li>
+                </ol>
+              </div>
+
+              {/* Schritt 2: Einloggen */}
+              <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "1.15rem",
+                    margin: "0 0 1rem",
+                    color: "var(--color-primary-dark)",
+                  }}
+                >
+                  Schritt 2: Bei EasyVerein einloggen
+                </h3>
+                <ol
+                  style={{
+                    margin: 0,
+                    paddingLeft: "1.25rem",
+                    color: "var(--color-text)",
+                    lineHeight: 1.8,
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  <li>
+                    Öffnen Sie:{" "}
+                    <a
+                      href="https://easyverein.com/public/AlemiIslam/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontWeight: 600 }}
+                    >
+                      easyverein.com/public/AlemiIslam
+                    </a>
                   </li>
                   <li>
                     Geben Sie als <strong>Vereinskürzel</strong> ein:
@@ -645,7 +642,7 @@ export default function MitgliederPage() {
                 </div>
 
                 <ol
-                  start={4}
+                  start={3}
                   style={{
                     margin: 0,
                     paddingLeft: "1.25rem",
@@ -655,23 +652,63 @@ export default function MitgliederPage() {
                   }}
                 >
                   <li>
-                    Geben Sie die <strong>E-Mail-Adresse</strong> ein, die Sie
-                    soeben hinterlegt haben.
+                    Geben Sie Ihre <strong>E-Mail-Adresse</strong> und das soeben
+                    erstellte <strong>Passwort</strong> ein.
                   </li>
                   <li>
-                    Geben Sie das <strong>Passwort</strong> ein, das Sie soeben
-                    gewählt haben.
-                  </li>
-                  <li>
-                    Klicken Sie auf <strong>&bdquo;Einloggen&ldquo;</strong>.
+                    Klicken Sie auf <strong>&bdquo;Anmelden&ldquo;</strong>.
                   </li>
                 </ol>
               </div>
 
+              {/* EasyVerein App */}
+              <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "1.15rem",
+                    margin: "0 0 0.5rem",
+                    color: "var(--color-primary-dark)",
+                  }}
+                >
+                  EasyVerein App installieren
+                </h3>
+                <p
+                  style={{
+                    margin: "0 0 1rem",
+                    fontSize: "0.92rem",
+                    color: "var(--color-muted)",
+                  }}
+                >
+                  Sie können auch bequem über die App auf Ihr Mitgliederprofil
+                  zugreifen. Verwenden Sie beim Login das Vereinskürzel{" "}
+                  <strong>AlemiIslam</strong>.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.easyverein.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="social-btn"
+                  >
+                    Android (Google Play)
+                  </a>
+                  <a
+                    href="https://apps.apple.com/app/easyverein/id1297726596"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="social-btn"
+                  >
+                    iPhone / iPad (App Store)
+                  </a>
+                </div>
+              </div>
+
               <div style={infoBox}>
                 <strong>Wichtig:</strong> Das Vereinskürzel lautet immer{" "}
-                <strong>AlemiIslam</strong> (ohne Leerzeichen). Sollten Sie
-                Probleme beim Login haben, wenden Sie sich bitte an{" "}
+                <strong>AlemiIslam</strong> (ohne Leerzeichen, Groß-/Kleinschreibung
+                beachten). Sollten Sie Probleme beim Login haben, wenden Sie sich
+                bitte an{" "}
                 <a href="mailto:info@alemiislam.de">info@alemiislam.de</a> oder
                 rufen Sie uns an unter{" "}
                 <a href="tel:+49621524705">0621 52 47 05</a>.
