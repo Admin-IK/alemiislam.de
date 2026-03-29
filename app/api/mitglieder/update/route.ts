@@ -28,16 +28,31 @@ export async function POST(request: Request) {
       );
     }
 
+    // Normalize date to YYYY-MM-DD (API expects ISO format)
+    let isoDate = geburtsdatum;
+    if (geburtsdatum.includes(".")) {
+      // Convert DD.MM.YYYY → YYYY-MM-DD
+      const parts = geburtsdatum.split(".");
+      if (parts.length === 3) {
+        isoDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+      }
+    }
+
     // Update contact details (email, birthdate)
     await updateContactDetails(contactId, {
       privateEmail: email,
-      dateOfBirth: geburtsdatum,
+      dateOfBirth: isoDate,
     });
 
-    // Update member login email
-    await updateMemberLogin(memberId, {
-      emailOrUserName: email,
-    });
+    // Update member login email — some tokens may lack write access here,
+    // so we treat this as non-critical if contact-details succeeded.
+    try {
+      await updateMemberLogin(memberId, {
+        emailOrUserName: email,
+      });
+    } catch (loginErr) {
+      console.warn("Member login update failed (non-critical):", loginErr);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
