@@ -97,9 +97,7 @@ const inputStyle: React.CSSProperties = {
 const fieldGroup: React.CSSProperties = { marginBottom: "1rem" };
 
 const row: React.CSSProperties = {
-  display: "grid",
-  gap: "1rem",
-  gridTemplateColumns: "1fr 1fr",
+  /* handled by .form-row CSS class */
 };
 
 const btnPrimary: React.CSSProperties = {
@@ -336,7 +334,7 @@ export default function MitgliederPage() {
               {error && <div style={errorBox}>{error}</div>}
 
               <form onSubmit={handleVerify} className="card" style={{ padding: "1.5rem" }}>
-                <div style={row}>
+                <div className="form-row">
                   <div style={fieldGroup}>
                     <label style={labelStyle}>{t("mitglieder.vorname")} *</label>
                     <input style={inputStyle} required value={verify.vorname}
@@ -358,14 +356,14 @@ export default function MitgliederPage() {
                     placeholder={t("mitglieder.placeholderTelefon")} />
                 </div>
 
-                <div style={row}>
+                <div className="form-row">
                   <div style={fieldGroup}>
                     <label style={labelStyle}>{t("mitglieder.strasse")} *</label>
                     <input style={inputStyle} required value={verify.strasse}
                       onChange={(e) => setVerify({ ...verify, strasse: e.target.value })}
                       placeholder={t("mitglieder.placeholderStrasse")} />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "5rem 1fr", gap: "0.5rem" }}>
+                  <div className="form-row-plz">
                     <div style={fieldGroup}>
                       <label style={labelStyle}>{t("mitglieder.plz")} *</label>
                       <input style={inputStyle} required value={verify.plz}
@@ -409,7 +407,7 @@ export default function MitgliederPage() {
 
               <div className="card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
                 <h3 style={h3Style}>{t("mitglieder.storedData")}</h3>
-                <dl style={profileDl}>
+                <dl className="profile-dl">
                   <dt style={dtSt}>{t("mitglieder.memberNr")}</dt>
                   <dd style={ddSt}>{profile.mitgliedsnummer}</dd>
                   <dt style={dtSt}>{t("mitglieder.vorname")}</dt>
@@ -448,7 +446,7 @@ export default function MitgliederPage() {
                     placeholder={t("mitglieder.placeholderEmail")} />
                 </div>
 
-                <div style={row}>
+                <div className="form-row">
                   <div style={fieldGroup}>
                     <label style={labelStyle}>{t("mitglieder.passwordLabel")} *</label>
                     <input style={inputStyle} required type="password" value={update.passwort}
@@ -483,7 +481,7 @@ export default function MitgliederPage() {
                     placeholder={t("mitglieder.placeholderIban")} />
                 </div>
 
-                <div style={row}>
+                <div className="form-row">
                   <div style={fieldGroup}>
                     <label style={labelStyle}>{t("mitglieder.bic")}</label>
                     <input style={inputStyle} value={update.bic}
@@ -538,19 +536,7 @@ export default function MitgliederPage() {
                   </li>
                 </ol>
 
-                <div style={{
-                  margin: "0.75rem 0 0.75rem 1.25rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  padding: "0.75rem 1.25rem",
-                  background: "var(--color-primary-dark)",
-                  color: "#ecfdf5",
-                  borderRadius: "var(--radius)",
-                  fontFamily: "monospace",
-                  fontSize: "1.2rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.04em",
-                }}>
+                <div className="code-badge" style={{ margin: "0.75rem 0 0.75rem 1.25rem" }}>
                   AlemiIslam
                 </div>
 

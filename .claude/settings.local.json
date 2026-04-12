@@ -4,7 +4,8 @@
       "Bash(claude auth:*)",
       "Bash(where.exe claude:*)",
       "Bash(npx next:*)",
-      "Bash(curl -s \"https://easyverein.com/api/stable/doc\" -L -o /dev/null -w \"%{http_code} %{url_effective}\")"
+      "Bash(curl -s \"https://easyverein.com/api/stable/doc\" -L -o /dev/null -w \"%{http_code} %{url_effective}\")",
+      "Read(//c//**)"
     ]
   }
 }

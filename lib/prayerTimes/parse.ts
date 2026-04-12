@@ -77,7 +77,7 @@ function unwrapRows(data: unknown): Record<string, unknown>[] {
   }
   if (data && typeof data === "object") {
     const o = data as Record<string, unknown>;
-    for (const k of ["data", "result", "items", "prayerTimes", "times", "Data"]) {
+    for (const k of ["list", "List", "data", "Data", "result", "Result", "items", "Items", "prayerTimes", "PrayerTimes", "times", "Times"]) {
       const v = o[k];
       if (Array.isArray(v)) return unwrapRows(v);
     }
