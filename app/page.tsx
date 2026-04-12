@@ -8,6 +8,7 @@ import {
 } from "@/lib/site";
 import { ContactBlock } from "./components/ContactBlock";
 import { FacebookPageEmbed } from "./components/FacebookPageEmbed";
+import { DailyWisdomSection } from "./components/DailyWisdomSection";
 import { PrayerTimesSection } from "./components/PrayerTimesSection";
 import { SiteHeader } from "./components/SiteHeader";
 import { useLocale } from "./components/LocaleProvider";
@@ -53,6 +54,8 @@ export default function HomePage() {
         </section>
 
         <PrayerTimesSection />
+
+        <DailyWisdomSection />
 
         <section id="ueber-uns" className="section">
           <div className="container">

@@ -548,6 +548,77 @@ img {
 /* ═══════════════════════════════════════
    Gebetszeiten: Laufband
    ═══════════════════════════════════════ */
+.wisdom-section {
+  padding: 2.25rem 0;
+  background: linear-gradient(
+    180deg,
+    rgba(19, 78, 74, 0.03) 0%,
+    rgba(19, 78, 74, 0.06) 100%
+  );
+}
+.wisdom-card {
+  max-width: 820px;
+  background: #fff;
+  border: 1px solid rgba(19, 78, 74, 0.12);
+  border-radius: 14px;
+  padding: 1.75rem 1.75rem 1.4rem;
+  box-shadow: 0 6px 24px -16px rgba(19, 78, 74, 0.35);
+}
+.wisdom-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.wisdom-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.wisdom-badge--ayah {
+  background: rgba(19, 78, 74, 0.12);
+  color: var(--color-primary-dark);
+}
+.wisdom-badge--hadith {
+  background: rgba(180, 120, 20, 0.15);
+  color: #8a5a12;
+}
+.wisdom-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--color-primary-dark);
+}
+.wisdom-arabic {
+  font-size: 1.9rem;
+  line-height: 2;
+  text-align: right;
+  margin: 0.25rem 0 1.1rem;
+  font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", serif;
+  color: #0f2e2c;
+}
+.wisdom-translation {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  margin: 0 0 0.9rem;
+  color: var(--color-text);
+}
+.wisdom-source {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+@media (max-width: 640px) {
+  .wisdom-arabic { font-size: 1.55rem; line-height: 1.9; }
+  .wisdom-card { padding: 1.35rem 1.15rem 1.1rem; }
+}
+
 .prayer-section {
   padding: 0.55rem 0 0.45rem;
   background: linear-gradient(

@@ -85,6 +85,11 @@ const messages = {
         yatsi: "Nacht",
       },
     },
+    wisdom: {
+      title: "Tägliche Weisheit",
+      typeAyah: "Vers aus dem Qur’an",
+      typeHadith: "Hadîth",
+    },
     about: {
       title: "Über unsere Gemeinde",
       introBefore: "Als Teil der ",
@@ -396,6 +401,11 @@ const messages = {
         aksam: "Akşam",
         yatsi: "Yatsı",
       },
+    },
+    wisdom: {
+      title: "Günün Hikmeti",
+      typeAyah: "Kur’an’dan Âyet",
+      typeHadith: "Hadîs-i Şerîf",
     },
     about: {
       title: "Cemaatimiz hakkında",
