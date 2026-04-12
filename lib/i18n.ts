@@ -33,6 +33,9 @@ const messages = {
         title: "Bildung",
         intro:
           "In unserer Gemeinde finden Bildungsangebote für Kinder, Jugendliche und Erwachsene statt – von Qur’an-Lesen und Grundlagen des Glaubens bis zu Kursen und Seminaren im Rahmen des Vereinslebens. Termine und Anmeldung erfahren Sie in der Moschee oder über unsere Kanäle.",
+        ctaTitle: "Mitgliederdaten erfassen & aktualisieren",
+        ctaText: "Vervollständigen Sie Ihr EasyVerein-Profil – E-Mail, IBAN und Passwort.",
+        ctaBtn: "Zum Formular →",
       },
       jugend: {
         title: "Jugendorganisation",
@@ -342,6 +345,9 @@ const messages = {
         title: "Eğitim",
         intro:
           "Cemaatimizde çocuklar, gençler ve yetişkinler için Kur’an, iman esasları ve dernek çerçevesinde kurs ve seminerler düzenlenir. Tarihler ve kayıt için camiye danışın veya duyuru kanallarımızı takip edin.",
+        ctaTitle: "Üye Bilgilerini Güncelle",
+        ctaText: "EasyVerein profilinizi tamamlayın – e-posta, IBAN ve şifre.",
+        ctaBtn: "Formu Aç →",
       },
       jugend: {
         title: "Gençlik Teşkilatı",
